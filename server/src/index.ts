@@ -1,8 +1,17 @@
+/// <reference types ="node" />
 import * as http from 'http';
 import * as fs from 'fs/promises';
 // const  http = require("http");
 //  http.createServer
+
 http.createServer((request, response) => {
+    const args = request.url.split('?');
+    const command = args[0];
+    const params = {};
+    args[1].split('&').forEach(item => {
+        const it = item.split('=')
+        params[it[0]] = it[1] || true
+    })
     try {
         console.log("Url: " + request.url);
         console.log("Тип запроса: " + request.method);
