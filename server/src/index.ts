@@ -1,50 +1,61 @@
 /// <reference types ="node" />
 import * as http from 'http';
 import * as fs from 'fs/promises';
-// const  http = require("http");
-//  http.createServer
-
-http.createServer((request, response) => {
-    const args = request.url.split('?');
-    const command = args[0];
-    const params = {};
-    args[1].split('&').forEach(item => {
-        const it = item.split('=')
-        params[it[0]] = it[1] || true
-    })
-    try {
-        console.log("Url: " + request.url);
-        console.log("Тип запроса: " + request.method);
-        console.log("User-Agent: " + request.headers["user-agent"]);
-        console.log("Все заголовки");
-        console.log(request.headers);
-        response.writeHead(200, {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-            'Access-Control-Allow-Headers': 'X-PINGOTHER, Content-Type',
-        });
-
-        const dir = `./node_modules/${request.url}`
-        const info = fs.readdir(dir);
-        info.then(res => {
-            Promise.all(res.map(item => {
-                return fs.lstat(`${dir}/${item}`).then(stat => {
-                    return {
-                        isDirectory: stat.isDirectory(),
-                        name: item
-                    }
-                })
-            })).then(files => {
-                response.end(JSON.stringify({ files }))
-            })
-
-
-        });
+import { parseUrl } from './glob'
+function dir(params: { path: string }) {
+    if (typeof params.path !== 'string') {
+        return Promise.resolve({ files: [] })
     }
-    catch {
+    const dir = `./node_modules/${params.path}`
+    console.log(params.path)
+    const info = fs.readdir(dir);
+    return info.then(res => {
+        return Promise.all(res.map(item => {
+            return fs.lstat(`${dir}/${item}`).then(stat => {
+                return {
+                    isDirectory: stat.isDirectory(),
+                    name: item
+                }
+            })
+        }))
 
-        response.end({ files: [] })
+    }).then(files => {
+        return { files }
+    })
+}
+function download(params: { path: string }) {
+    return fs.readFile( `./node_modules/${params.path}`).then(res => {
+        return res
+    })
+
+}
+http.createServer((request, response) => {
+    let address = parseUrl(request.url)
+    switch (address.command) {
+        case '/dir':
+            response.writeHead(200, {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+                'Access-Control-Allow-Headers': 'X-PINGOTHER, Content-Type',
+            });
+            dir(address.params as any).then((res) => {
+                response.end(JSON.stringify(res))
+            })
+            break;
+        case '/download':
+            response.writeHead(200, {
+                'Content-Type': 'application/octet-stream',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+                'Access-Control-Allow-Headers': 'X-PINGOTHER, Content-Type',
+            });
+            download(address.params as any).then(res => {
+                response.end(res)
+            })
+            break;
+        default:
+            response.end({})
     }
 
 }).listen(3000);

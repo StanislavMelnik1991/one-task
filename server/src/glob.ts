@@ -1,4 +1,4 @@
-export function testing(url: string): {command: string, params: Record<string,string>} {
+export function parseUrl(url: string): {command: string, params: Record<string,string>} {
 const args = url.split('?');
 const command = args[0];
 const params = {};

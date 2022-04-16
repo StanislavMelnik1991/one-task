@@ -11,35 +11,45 @@ interface FileInfo {
 function FileViewer() {
     //   const [dir, setDir] = useState({})  
     const [files, setFiles] = useState<Array<FileInfo>>([])
-    const [path, setPath] = useState('')
+    const [path, setPath] = useState('/')
     useEffect(() => {
-        fetch(`http://localhost:3000/${path}`).then(res => res.json()).then(res => {
+        fetch(`http://localhost:3000/dir?path=${path}`).then(res => res.json()).then(res => {
             console.log(res)
             setFiles(res.files)
         })
     }, [path]);
     return <div>
-        <div  className={styles.text} onClick={() => {
-            setPath((path) => {
-                const r = path.split('/')
-                r.pop()
-                return r.join("/");
+        {
+            path != '/' && (
+                <div className={styles.text} onClick={() => {
+                    setPath((path) => {
+                        const r = path.split('/')
+                        r.pop()
+                        return r.join("/");
 
-            })
+                    })
+                }
+                }>
+                    <span>
+                        ..
+                    </span>
+                </div>
+            )
         }
-        }>
-            <span>
-                ..
-            </span>
-        </div>
+
 
         {files.map(file => {
-            return <div  className={styles.text} onClick={() => {
+            return <div className={styles.text} onClick={() => {
                 if (file.isDirectory) {
-                    setPath((path) => path + '/' + file.name);
-                    // fetch(`http://localhost:3000/${path}`).then(res => res.json()).then(res => {
-                    //     setFiles(res.files)
-                    // })
+                    setPath((path) => path + '/' +  file.name);
+                }else{ 
+                    fetch(`http://localhost:3000/download?path=${path + '/' +  file.name}`).then(res => res.blob()).then(res => {
+                        console.log(res)
+                        let a = document.createElement('a')
+                        a.href = URL.createObjectURL(res);
+                        a.download = `${file.name}`
+                        a.click();
+                    })
                 }
             }
             }>
