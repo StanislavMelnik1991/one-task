@@ -8,5 +8,5 @@
     "allowJs": true,
     "jsx": "react-jsx"
   },
-  "files": ["src/index.ts"]
+  "files": ["src/index.ts","module.d.ts"]
 }

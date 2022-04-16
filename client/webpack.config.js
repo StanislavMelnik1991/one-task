@@ -34,8 +34,18 @@ const config = {
                 exclude: ['/node_modules/'],
             },
             {
-                test: /\.css$/i,
-                use: [stylesHandler, 'css-loader'],
+                test: /.css$/i,
+                use: [
+                    stylesHandler,
+                    {
+                        loader: "css-loader",
+                        options: {
+                            modules: {
+                                exportLocalsConvention: "camelCase",
+                            },
+                        },
+                    }
+                ],
             },
             {
                 test: /\.(eot|svg|ttf|woff|woff2|png|jpg|gif)$/i,
