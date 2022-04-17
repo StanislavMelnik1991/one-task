@@ -2,6 +2,7 @@
 import * as http from 'http';
 import * as fs from 'fs/promises';
 import { parseUrl } from './glob'
+import { SocketServer } from './socketServer';
 function dir(params: { path: string }) {
     if (typeof params.path !== 'string') {
         return Promise.resolve({ files: [] })
@@ -29,7 +30,7 @@ function download(params: { path: string }) {
     })
 
 }
-http.createServer((request, response) => {
+const server = http.createServer((request, response) => {
     let address = parseUrl(request.url)
     switch (address.command) {
         case '/dir':
@@ -55,10 +56,11 @@ http.createServer((request, response) => {
             })
             break;
         default:
-            response.end({})
+            response.end(JSON.stringify({}))
     }
 
 }).listen(3000);
+new SocketServer(server)
 
 
 
