@@ -1,6 +1,6 @@
 /// <reference types ="node" />
 import * as http from 'http';
-import * as fs from 'fs/promises';
+import {promises as fs} from 'fs';
 import { parseUrl } from './glob'
 import { SocketServer } from './socketServer';
 function dir(params: { path: string }) {
